@@ -1,0 +1,66 @@
+#SingleInstance Force
+#Warn
+code_abbey.input_box()
+Exit
+
+*Esc::ExitApp
+
+Class code_abbey
+{
+	input_box() {
+		this.hwnd := {}
+		hwnd   := ""
+		edit_w := 400
+		edit_h := 300
+		btn_w  := 100
+		btn_h  := 25
+		btn_x  := edit_w - btn_w
+		
+		Gui, CIB:New,
+			this.hwnd.gui := hwnd
+		Gui, Margin, 5, 5
+		Gui, Add, Edit, xm ym w%edit_w% h%edit_h% +Multi HWNDhwnd
+			this.hwnd.edit := hwnd
+		Gui, Add, Button, xm y+m w%btn_w% h%btn_h%, Submit
+			bf := ObjBindMethod(this, "Submit")
+			GuiControl, +g, % hwnd, % bf
+		Gui, Add, Button, xm+%btn_x% yp w%btn_w% h%btn_h%, Cancel
+			bf := ObjBindMethod(this, "Quit")
+			GuiControl, +g, % hwnd, % bf
+		Gui, Show, AutoSize
+		
+		Return
+	}
+	
+	Submit() {
+		MsgBox testing
+		Gui, CIB:Hide
+		GuiControlGet, data,, % this.hwnd.edit
+		MsgBox, % data
+		If this.check(data)
+			Return this.sum(data)
+		Else {
+			GuiControl,, % this.hwnd.edit, % ""
+			Gui, CIB:Show
+		}
+		Return
+	}
+	
+	check(data, delim:=" ", case_delim:="`n", case_omit:="`r") {
+		Loop, Parse, % data, % case_delim, % case_omit
+			Loop, Parse, % A_LoopField, % " "
+				If ((1+A_LoopField) = "")
+					Return False
+		Return True
+	}
+	
+	sum(data) {
+		MsgBox running
+		Return
+	}
+
+	Quit() {
+		ExitApp
+	}
+}
+

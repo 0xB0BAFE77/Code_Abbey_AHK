@@ -44,22 +44,22 @@ Class code_abbey
     ; Submits data to be verified and operated on
     Submit() {
         Local
-        GuiControlGet, data,, % this.hwnd.edit                  ; Get data
-        GuiControl,, % this.hwnd.edit, % ""                     ; Empty data box
+        GuiControlGet, data,, % this.hwnd.edit              ; Get data
+        GuiControl,, % this.hwnd.edit, % ""                 ; Empty data box
         
         case_total := 0
         case_arr   := []
         
-        Loop, Parse, % data, % "`n", % "`r"                     ; Parse data in an array
-            If (A_Index = 1)                                    ; First line contains total cases
+        Loop, Parse, % data, % "`n", % "`r"                 ; Parse data in an array
+            If (A_Index = 1)                                ; First line contains total cases
                 case_total := A_LoopField
-            Else case_arr.Push(StrSplit(A_LoopField, " "))      ; Add all cases to array
+            Else case_arr.Push(StrSplit(A_LoopField, " "))	; Add all cases to array
         
-        this.check(case_total, case_arr)                        ; Verify data and check for errors
+        this.check(case_total, case_arr)                    ; Verify data and check for errors
         
         result := ""
         For case_num, case in case_arr
-            result := this.time_diff(case_arr) " "              ; Assign result
+            result := this.time_diff(case) " "              ; Assign result
         
         result := RTrim(result, " ")
         
@@ -145,4 +145,3 @@ Class code_abbey
     }
 
 }
-

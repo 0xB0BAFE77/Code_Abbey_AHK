@@ -45,14 +45,12 @@ Class code_abbey
     Submit() {
         Local
         
-        GuiControlGet, data,, % this.hwnd.edit      ; Get data
-        GuiControl,, % this.hwnd.edit, % ""         ; Empty data box
+        GuiControlGet, data,, % this.hwnd.edit          ; Get data
+        GuiControl,, % this.hwnd.edit, % ""             ; Empty data box
         
-        case_arr := StrSplit(A_LoopField, " ")      ; Add all cases to array
-        this.check(case_arr)                        ; Verify data and check for errors
-        
-        this.check(case)                            ; Validate data
-        result := this.modular_calc(case)           ; Assign each result
+        case_arr := StrSplit(data, " ")
+        this.check(case_arr)                            ; Verify data and check for errors
+        result := this.array_min_max(case_arr)          ; Assign each result
         
         MsgBox, 0x4, Finished, % "Save results to the clipboard?"
             . "`n`nResults:`n" result
@@ -62,51 +60,38 @@ Class code_abbey
     }
     
     ; Validate input
-    Check(case) {
+    Check(case_arr) {
         Local
-        example := "5`n+ 3`n* 7`n+ 10`n* 2`n* 3`n+ 1`n% 11"
-        last_i  := case.MaxIndex()
+        example := "1 300 11 ... 295 4 2"
         
-        Loop, Parse, % case, % "`n" , % "`r"
-            If (A_Index > 1)
-                If !this.is_int(A_LoopField)
-                    this.error("First number must be an integer")
-            Else If (A_Index = last_i)
-                data := StrSplit(A_LoopField, " ")
-                , (data.1 != "%"
-                    ? this.error("The last line should start with a percent sign (%)."
-                        , data.1
-                        , "%"
-                        , example)
-                    : "" )
-                , (!this.is_int(data.2)
-                    ? this.error("The last line should end with an intger."
-                        . "`nA space should separate the integer from the percent sign.")
-                    : "")
-            Else
-                data := StrSplit(A_LoopField, " ")
-                ,(data.1 != "+" && data.1 != "*"
-                    ? this.error("Lines between the first and last should start with a plus or multiplication sign."
-                        , data.1
-                        , "+ *"
-                        , example)
-                    : "")
-                ,(!this.is_int(data.2)
-                    ? this.error("All lines should end with an integer."
-                        , data.2
-                        , "integer"
-                        , example)
-                    : "")
+        For key, value in case_arr
+            If !this.is_int(value)
+                this.error(""
+                    , value
+                    , "integer"
+                    , example )
+        
+        If (case_arr.MaxIndex() != 300)
+            this.error("Exactly 300 numbers should be supplied."
+                , case_arr.MaxIndex()
+                , 300
+                , example )
         
         Return True
     }
     
-    modular_calc(case) {
+    array_min_max(case) {
         Local
         
-        case := StrSplit(case, " ")
+        For index, value in case
+            If (index = 1)
+                min := max := value
+            Else
+                (value > max) ? max := value 
+                : (value < min) ? min := value
+                : ""
         
-        Return
+        Return (max " " min)
     }
     
     ; Error handling
@@ -137,7 +122,6 @@ Class code_abbey
     is_pos_num(num) {
         Return (num + 0 > 0)
     }
-
 }
 
 /*

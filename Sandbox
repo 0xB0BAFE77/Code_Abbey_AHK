@@ -48,9 +48,14 @@ Class code_abbey
         GuiControlGet, data,, % this.hwnd.edit          ; Get data
         GuiControl,, % this.hwnd.edit, % ""             ; Empty data box
         
-        case_arr := StrSplit(data, " ")
-        this.check(case_arr)                            ; Verify data and check for errors
-        result := this.array_min_max(case_arr)          ; Assign each result
+        case_arr   := StrSplit(data, "`n", "`r")
+        case_total := case_arr.RemoveAt(1)
+        
+        result := ""
+        For index, case in case_arr
+            data    := StrSplit(case, " ")
+            ,result .= this.two_printers(data.1, data.2, data.3) " "
+        result := RTrim(result, " ")
         
         MsgBox, 0x4, Finished, % "Save results to the clipboard?"
             . "`n`nResults:`n" result
@@ -59,49 +64,26 @@ Class code_abbey
         ExitApp
     }
     
-    ; Validate input
-    Check(case_arr) {
+    ; Determins minimum time in seconds to print all pages
+    two_printers(p1, p2, pages) {
         Local
-        example := "1 300 11 ... 295 4 2"
+        ;2
+        ;1  1   5       > 3
+        ;3  5   4       > 9
+        ;15 30  60      > 600
+        ;40 105 8399048	> 243282795
         
-        For key, value in case_arr
-            If !this.is_int(value)
-                this.error(""
-                    , value
-                    , "integer"
-                    , example )
+        (p1 < p2) ? (fast := p1, slow := p2)
+            : (fast := p2, slow := p1)
         
-        If (case_arr.MaxIndex() != 300)
-            this.error("Exactly 300 numbers should be supplied."
-                , case_arr.MaxIndex()
-                , 300
-                , example )
         
-        Return True
-    }
-    
-    array_min_max(case) {
-        Local
         
-        For index, value in case
-            If (index = 1)
-                min := max := value
-            Else
-                (value > max) ? max := value 
-                : (value < min) ? min := value
-                : ""
-        
-        Return (max " " min)
-    }
-    
-    ; Error handling
-    error(msg, found, expected, example) {
-        MsgBox, 0x0, % "Error found!"
-            , % msg
-            . "`nFound: " found
-            . "`nExpected: " expected
-            . "`nExample: " example
-        Exit
+        in 3 sec = 1.6
+        1.6/3 = .5333333
+        in 5 sec = 2.66666666667
+        2.66666666667/5 = .533333333
+        MsgBox, % (3996209 + 3715580)
+        Return 
     }
     
     Quit() {

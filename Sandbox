@@ -41,20 +41,22 @@ Class code_abbey
         Return
     }
     
-    ; Submits data to be verified and operated on
+    ; Submits provided data to be operated on
     Submit() {
         Local
         
-        GuiControlGet, data,, % this.hwnd.edit          ; Get data
-        GuiControl,, % this.hwnd.edit, % ""             ; Empty data box
+        GuiControlGet, data,, % this.hwnd.edit      ; Get data
+        GuiControl,, % this.hwnd.edit, % ""         ; Empty data box
         
         case_arr := StrSplit(data, "`n", "`r")
-        case_total := case_arr.RemoveAt(1)
+        case_arr.RemoveAt(1)
         
-        result := ""
-        For index, case in case_arr
-            result .= this.linear_con_gen(StrSplit(case, " ")) " "
-        result := RTrim(result, " ")
+        result := this.code_guesser(case_arr)
+        ;~ result := ""
+        ;~ For index, case in case_arr
+            ;~ data := StrSplit(case, " ")
+            ;~ ,result .= this.savings_calc(data.1, data.2, data.3) " "
+        ;~ result := RTrim(result, " ")
         
         MsgBox, 0x4, Finished, % "Save results to the clipboard?"
             . "`n`nResults:`n" result
@@ -63,15 +65,247 @@ Class code_abbey
         ExitApp
     }
     
-    ; Linear Congruential Generator
-    linear_con_gen(arr) {
+    code_guesser(case) {
+        ;402 0
+        ;390 0
+        ;777 0
+        ;815 1
+        ;816 2
+        ;848 2
+        
+        ; 2794 0
+        ; 0753 0
+        ; 2109 0
+        ; 0854 0
+        ; 0735 0
+        ; 6185 0
+        ; 3755 0
+        
+        ; 4750 1
+        ; 2112 1
+        ; 8955 1
+        
+        ; 7242 2
+        
+           1        4? 5     7? 8? 9    478
+        0     2? 3  4  5  6        9?   29
+           1? 2     4?    6  7          14
+        0? 1  2??         6  7  8       02
+        
+        ans     := {}
+        Loop, % StrLen(guesses.1)
+        {
+            ans[(i := A_Index)] := {}
+            Loop, % 10
+                ans[i][A_Index] := 2
+        }
+        
+        ; Let 0 = no, 1 = yes, and 2 = maybe
+        For k, v in case
+        {
+            data := StrSplit(v, " ")
+            ; If zero, remove that number from that slot
+            If (data.2 = 0)
+                Loop, Parse, % data.1
+                    ans[A_Index][A_LoopField] := 0
+            
+        }
+        
+        Return
+    }
+    
+    Quit() {
+        ExitApp
+    }
+}
+/*
+16
+
+8 2 6 1   0
+1 7 5 3   0
+0 3 0 4   0
+2 3 1 1   0
+3 9 8 6   0
+0 5 3 3   0
+1 8 9 5   0
+8 3 0 6   0
+4 1 6 9   0
+8 2 2 1   0
+
+3 8 4 8   1
+1 9 4 2   1
+6 6 7 5   1
+1 1 4 9   1
+
+6 5 7 0   2
+1 0 4 2   2
+
+; Parse dat
+
+; Using the 0match cases, eliminate slot numbers
+; Build a table
+;     0  1  2  3  4  5  6  7  8  9
+;     |  |  |  |  |  |  |  |  |  |
+; 1 - x  x  x  x  4  5  6  7  x  9
+; 2 - 0  1  x  x  4  x  6  x  x  x
+; 3 - x  x  x  3  4  x  x  7  x  x
+; 4 - 0  x  2  x  x  x  x  7  8  x
+
+; x's removed
+; 1 - 4  5  6  7  9
+; 2 - 0  1  4  6
+; 3 - 3  4  7
+; 4 - 0  2  7  8
+
+; Using the table, eliminate the numbers from the other sets
+; x x 4 8   1
+; x 9 x 2   1
+; 6 6 7 x   1
+; x 1 4 x   1
+
+; 6 x 7 0   2
+; x 0 4 2   2
+
+
+
+
+; ANS 
+
+; 0  1  2  3  4  5  6  7  8  9
+; 0  1  2  3  4  5  6  7  8  9
+; 0  1  2  3  4  5  6  7  8  9
+; 0  1  2  3  4  5  6  7  8  9
+*/
+
+/*
+    savings_calc(money, goal, interest) {
+        interest := interest / 100
+        While (money < goal)
+            money += money * interest
+            ,yrs := A_Index
+        Return yrs
+    }
+    
+    bin_search(a, b, c, d){
+        acc := 0.0000001
+        min := 0
+        max := 100
+        x   := (min+max) / 2
+        ans := 1
+        
+        While (ans > acc || ans < acc * -1)
+            x := (min + max) / 2
+            ,ans := A * x + B * sqrt(x**3) - C * exp(-x/50) - D
+            ,(ans < 0) ? min := x
+                : (ans > 0) ? max := x
+                : ""
+        Return Format("{:.7f}", x)
+    }
+
+    parity_control(arr_in){
+        arr := []
+        For k, num in arr_in
+            If (num = 46)
+                Break
+            else arr.Push(this.dec_to_bin(num))                    ; Convert all numbers to binary
+        
+        str := ""
+        For k, v in arr                                 ; Loop through each bin number
+        {
+            first_bit := SubStr(v, 1, 1)                ; Get first bit
+            char := SubStr(v, 2)                        ; Get remaining bits
+            StrReplace(char, 1, 1, bits_on)             ; Count bits turned on
+            ;MsgBox, % "v: " v "`nfirst_bit: " first_bit "`nchar: " char "`nbits_on: " bits_on "`nstr: " str "`nchar: " char
+            (Mod(bits_on, 2) = first_bit)      ; If bits_on is odd and if first_bit is 1
+            || (Mod(bits_on, 2) = first_bit)   ; Else if bits_on is even and first bit is 0
+                ? str .= Chr(this.bin_to_dec(char))     ; Add the letter
+            : ""                                        ; Else skip the letter
+        }
+        Return str "."
+    }
+    
+    bin_to_dec(num){
+        dec := 0
+        Loop, % StrLen(num)
+            dec += SubStr(num, 1-A_Index, 1) * (2 ** (A_Index-1))
+        Return dec
+    }
+    
+    dec_to_bin(num){
+        bin := []
+        While (num > 0)
+            bin.Push(Mod(num, 2))
+            ,num := Floor(num/2)
+        
+        str := ""
+        Loop, % bin.Length()
+            str .= bin[bin.MaxIndex()+1-A_Index]
+        
+        While (StrLen(str) < 8)
+            str := "0" . str
+        
+        Return str
+    }
+    
+    josephus(total, step){
+        res := ""
+        arr := []
+        i   := 0
+        rem := 0
+        Loop, % total
+            arr.Push(A_Index)
+        
+        While (arr.Length() > 1)
+            (i >= arr.Length()) ? i := 1 : i++
+            ,(Mod(A_Index, step) = 0)
+                ? arr.RemoveAt(i--)
+                : ""
+        Return arr.1
+    }
+    
+    string_reverse(str){
+        result := ""
+        Loop, % StrLen(str)
+            result .= SubStr(str, 1-A_Index, 1)
+        Return result
+    }
+    
+    sort_with_index(arr){
+        obj := {}
+        result := ""
+        For index, value in arr
+            obj[value] := index
+        
+        For index, value in obj
+            result .= value " "
+        
+        Return RTrim(result, " ")
+    }
+    
+    bmi(weight, height){
         Local
-        x := arr.4
+        bmi := weight/(height**2)
+        Return (bmi < 18.5) ? "under"
+            : (bmi < 25) ? "normal"
+            : (bmi < 30) ? "over"
+            : "obese"
+    }
+    
+    bubble_sort(arr){
+        swaps   := 0
+        passes  := 0
         
-        Loop, % arr.5
-            x := Mod(arr.1 * x + arr.2, arr.3)
-        
-        Return x
+        Loop
+        {
+            swapped := False
+            passes++
+            Loop, % arr.MaxIndex() - A_Index
+                If (arr[A_Index] > arr[A_Index+1])
+                    this.swap(arr, A_Index, A_Index+1)
+                    ,swaps++
+                    ,swapped := True
+        }Until (swapped = False)
+        Return (passes " " swaps)
     }
     
     swap(arr, i1, i2) {
@@ -80,6 +314,20 @@ Class code_abbey
         ,arr[i1] := arr[i2]
         ,arr[i2] := tmp
         Return
+    }
+
+    ; Greatest Common Divisor
+    gcd(num1, num2) {
+        Local
+        While !(num1 = num2)
+            (num1 > num2) ? num1 -= num2 : num2 -= num1
+        Return num1
+    }
+    
+    ; Least Common Multiplier
+    lcm(num1, num2) {
+        Local
+        Return Round(num1 * num2 / this.gcd(num1, num2))
     }
     
     checksum(arr) {
@@ -95,9 +343,6 @@ Class code_abbey
         Return result
     }
     
-    Quit() {
-        ExitApp
-    }
     
     ; Check if integer
     is_int(num) {
@@ -113,4 +358,4 @@ Class code_abbey
     is_pos_num(num) {
         Return (num + 0 > 0)
     }
-}
+    

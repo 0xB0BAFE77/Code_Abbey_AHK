@@ -65,7 +65,8 @@ Class code_abbey
         ExitApp
     }
     
-    code_guesser(case) {
+    code_guesser(guesses) {
+        ;6
         ;402 0
         ;390 0
         ;777 0
@@ -87,18 +88,41 @@ Class code_abbey
         
         ; 7242 2
         
-           1        4? 5     7? 8? 9    478
-        0     2? 3  4  5  6        9?   29
-           1? 2     4?    6  7          14
-        0? 1  2??         6  7  8       02
+        ; Sort guesses by amount of matches
+        guess_arr := {}
+        For index, value in guesses
+            data := StrSplit(value, " ")
+            ,guess_arr[data.2] := {}
+            ,guess_arr[data.2].Push(data.1)
         
-        ans     := {}
-        Loop, % StrLen(guesses.1)
+        For k, v in guess_arr
+            MsgBox, % "k: " k "`nv: " v
+        
+        str := ""
+        For k, v in guess_arr
+            str .= (A_Index = 1 ? k "right`n" v : v)
+        MsgBox, % str
+        ExitApp
+        
+        ; Create answer array
+        ; The answer will be derived from this array
+        ; by removing and comparing the guesses
+        ans_arr := {}
+        Loop, % StrLen(case.1.1)
         {
-            ans[(i := A_Index)] := {}
+            ans[(i:=A_Index)] := []
             Loop, % 10
-                ans[i][A_Index] := 2
+                ans[i] := A_Index
         }
+        
+        str := ""
+        For k, v in ans
+        {
+            For i, j in v
+                str .= j " "
+            str .= "`n"
+        }
+        MsgBox, % str
         
         ; Let 0 = no, 1 = yes, and 2 = maybe
         For k, v in case
